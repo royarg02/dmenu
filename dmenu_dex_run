@@ -3,8 +3,8 @@
 apps=$(dmenu_dex)
 selected=$(echo "$apps" | cut -d ':' -f1 | dmenu -l 20)
 
-[ ! -z "$selected" ] && \
-  setsid -f xdg-open $(echo "$apps" | grep "$selected" | cut -d ':' -f2)
+[ -n "$selected" ] && \
+  setsid -f xdg-open "$(echo "$apps" | grep "$selected" | cut -d ':' -f2)"
 
 unset apps selected
 exit 0
