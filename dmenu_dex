@@ -1,0 +1,23 @@
+#!/bin/sh
+
+cachedir="${XDG_CACHE_HOME:-"$HOME/.cache"}"
+cache="$cachedir/dmenu_dex"
+
+[ ! -e "$cachedir" ] && mkdir -p "$cachedir"
+
+search_path="${XDG_DATA_HOME:-"$HOME/.local/share"}:${XDG_DATA_DIRS:-"/usr/local/share:/usr/share"}"
+
+IFS=':'
+if stest -dqr -n "$cache" $search_path; then
+  for location in $search_path; do
+    [ -d "$location/applications" ] && \
+      find "$location"/applications -name "*.desktop"
+  done | \
+    xargs -I % sh -c 'grep '^Exec=' % > /dev/null && grep -m1 '^Name=' % | cut -d '=' -f2 | tr -d "\n" && echo ":%"' | \
+      sort -u -t: -k1,1 | tee "$cache"
+else
+  cat "$cache"
+fi
+
+unset search_path cachedir cache IFS
+exit 0
