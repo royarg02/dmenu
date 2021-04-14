@@ -1,0 +1,25 @@
+--- Makefile	2021-04-14 23:53:16.943900325 +0530
++++ Makefile	2021-04-14 23:53:25.985283624 +0530
+@@ -42,10 +42,12 @@
+ 
+ install: all
+ 	mkdir -p $(DESTDIR)$(PREFIX)/bin
+-	cp -f dmenu dmenu_path dmenu_run stest $(DESTDIR)$(PREFIX)/bin
++	cp -f dmenu dmenu_path dmenu_run dmenu_dex dmenu_dex_run stest $(DESTDIR)$(PREFIX)/bin
+ 	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu
+ 	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu_path
+ 	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu_run
++	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu_dex
++	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu_dex_run
+ 	chmod 755 $(DESTDIR)$(PREFIX)/bin/stest
+ 	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
+ 	sed "s/VERSION/$(VERSION)/g" < dmenu.1 > $(DESTDIR)$(MANPREFIX)/man1/dmenu.1
+@@ -57,6 +59,8 @@
+ 	rm -f $(DESTDIR)$(PREFIX)/bin/dmenu\
+ 		$(DESTDIR)$(PREFIX)/bin/dmenu_path\
+ 		$(DESTDIR)$(PREFIX)/bin/dmenu_run\
++		$(DESTDIR)$(PREFIX)/bin/dmenu_dex\
++		$(DESTDIR)$(PREFIX)/bin/dmenu_dex_run\
+ 		$(DESTDIR)$(PREFIX)/bin/stest\
+ 		$(DESTDIR)$(MANPREFIX)/man1/dmenu.1\
+ 		$(DESTDIR)$(MANPREFIX)/man1/stest.1
