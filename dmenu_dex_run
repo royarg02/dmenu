@@ -1,10 +1,10 @@
 #!/bin/sh
 
 apps=$(dmenu_dex)
-selected=$(echo "$apps" | cut -d ':' -f1 | dmenu -i -F -l 20 -z 480 -p "Applications")
+selected=$(echo "$apps" | cut -d '	' -f1 | dmenu -i -F -l 20 -z 480 -p "Applications")
 
 [ -n "$selected" ] && \
-  setsid -f xdg-open "$(echo "$apps" | grep "$selected" | cut -d ':' -f2)"
+  setsid -f xdg-open "$(echo "$apps" | grep "$selected" | cut -d '	' -f2)"
 
 unset apps selected
 exit 0
