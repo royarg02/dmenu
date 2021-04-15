@@ -5,8 +5,8 @@ selected=$(echo "$apps" | cut -d "$(printf "\t")" -f1 | \
   dmenu -i -F -l 20 -z 480 -p "Applications")
 
 [ -n "$selected" ] && \
-  setsid -f xdg-open "$(echo "$apps" | grep "^$selected$(printf "\t")" | \
-    cut -d "$(printf "\t")" -f2)"
+  echo "$apps" | grep "^$selected$(printf "\t")" | cut -d "$(printf "\t")" -f2 | \
+    xargs basename | xargs setsid -f gtk-launch
 
 unset apps selected
 exit 0
