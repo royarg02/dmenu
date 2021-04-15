@@ -15,7 +15,7 @@ if stest -dqr -n "$cache" $search_path; then
   done | \
     xargs -I % sh -c \
       'grep '^NoDisplay=true' % > /dev/null || { grep -m1 '^Name=' % | cut -d '=' -f2 | tr -d "\n" && echo -e "\t%" ;}' | \
-        sort -u -t '	' -k1,1 | tee "$cache"
+        sort -u -t "$(printf "\t")" -k1,1 | tee "$cache"
 else
   cat "$cache"
 fi
