@@ -6,7 +6,9 @@ static int colorprompt = 1;                /* -p  option; if 1, prompt uses Sche
 static int fuzzy = 1;                      /* -F  option; if 0, dmenu doesn't use fuzzy matching     */
 /* -fn option overrides fonts[0]; default X11 font or font set */
 static const char *fonts[] = {
-	"monospace:size=10"
+	"monospace:size=10",
+	/* Add emoji font for colored emoji support */
+	"Noto Color Emoji:size=11"
 };
 static const char *prompt      = NULL;      /* -p  option; prompt to the left of input field */
 static const char *colors[SchemeLast][2] = {
