@@ -2,7 +2,7 @@
 
 apps=$(dmenu_dex)
 selected=$(echo "$apps" | cut -d "$(printf "\t")" -f1 | \
-  dmenu -i -F -l 20 -z 480 -p "Applications")
+  dmenu -i -F -l 20 -z 480 -h 25 -p "Applications")
 
 selected="$(echo "$apps" | grep "^$selected$(printf "\t")")"
 [ -n "$selected" ] && echo "$selected" | cut -d "$(printf "\t")" -f2 | \
