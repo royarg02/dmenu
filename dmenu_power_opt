@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# Power options
+# Displays a menu showing options to lock, poweroff, reboot, hibernate or
+# suspend system
+
+choice="$(printf "Lock\nSuspend\nHibernate\nLog off\nPoweroff\nReboot" | dmenu "$@")"
+
+case "$choice" in
+  "Lock")       loginctl lock-session ;;
+  "Suspend")    loginctl suspend ;;
+  "Hibernate")  loginctl hibernate ;;
+  "Log off")    killall Xorg ;;
+  "Poweroff")   loginctl poweroff ;;
+  "Reboot")     loginctl reboot ;;
+  *)            exit 1 ;;
+esac
+
+exit 0

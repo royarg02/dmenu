@@ -42,12 +42,13 @@ dist: clean
 
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp -f dmenu dmenu_path dmenu_run dmenu_dex dmenu_dex_run stest $(DESTDIR)$(PREFIX)/bin
+	cp -f dmenu dmenu_path dmenu_run dmenu_dex dmenu_dex_run dmenu_power_opt stest $(DESTDIR)$(PREFIX)/bin
 	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu
 	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu_path
 	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu_run
 	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu_dex
 	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu_dex_run
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu_power_opt
 	chmod 755 $(DESTDIR)$(PREFIX)/bin/stest
 	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
 	sed "s/VERSION/$(VERSION)/g" < dmenu.1 > $(DESTDIR)$(MANPREFIX)/man1/dmenu.1
@@ -61,6 +62,7 @@ uninstall:
 		$(DESTDIR)$(PREFIX)/bin/dmenu_run\
 		$(DESTDIR)$(PREFIX)/bin/dmenu_dex\
 		$(DESTDIR)$(PREFIX)/bin/dmenu_dex_run\
+		$(DESTDIR)$(PREFIX)/bin/dmenu_power_opt\
 		$(DESTDIR)$(PREFIX)/bin/stest\
 		$(DESTDIR)$(MANPREFIX)/man1/dmenu.1\
 		$(DESTDIR)$(MANPREFIX)/man1/stest.1
