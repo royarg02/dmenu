@@ -1,16 +1,16 @@
 #!/bin/sh
 
 # Power options
-# Displays a menu showing options to lock, poweroff, reboot, hibernate or
-# suspend system
+# Displays a menu showing options to lock, logoff, suspend, hibernate, poweroff,
+# or reboot system
 
-choice="$(printf "Lock\nSuspend\nHibernate\nLog off\nPoweroff\nReboot" | dmenu "$@")"
+choice="$(printf "Lock\nLog off\nSuspend\nHibernate\nPoweroff\nReboot" | dmenu "$@")"
 
 case "$choice" in
   "Lock")       loginctl lock-session ;;
+  "Log off")    loginctl kill-session "$XDG_SESSION_ID" ;;
   "Suspend")    loginctl suspend ;;
   "Hibernate")  loginctl hibernate ;;
-  "Log off")    killall Xorg ;;
   "Poweroff")   loginctl poweroff ;;
   "Reboot")     loginctl reboot ;;
   *)            exit 1 ;;
