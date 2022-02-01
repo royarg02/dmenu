@@ -9,10 +9,11 @@ choice="$(printf "Lock\nLog off\nSuspend\nHibernate\nPoweroff\nReboot" | dmenu "
 case "$choice" in
   "Lock")       loginctl lock-session ;;
   "Log off")    loginctl kill-session "$XDG_SESSION_ID" ;;
-  "Suspend")    loginctl suspend ;;
-  "Hibernate")  loginctl hibernate ;;
-  "Poweroff")   loginctl poweroff ;;
-  "Reboot")     loginctl reboot ;;
+  # Make sure to add the following commands to NOPASSWD at sudoers
+  "Suspend")    sudo loginctl suspend ;;
+  "Hibernate")  sudo loginctl hibernate ;;
+  "Poweroff")   sudo loginctl poweroff ;;
+  "Reboot")     sudo loginctl reboot ;;
   *)            exit 1 ;;
 esac
 
