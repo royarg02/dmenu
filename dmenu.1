@@ -3,7 +3,7 @@
 dmenu \- dynamic menu
 .SH SYNOPSIS
 .B dmenu
-.RB [ \-bfiv ]
+.RB [ \-bfFiv ]
 .RB [ \-l
 .IR lines ]
 .RB [ \-h
@@ -30,8 +30,14 @@ dmenu \- dynamic menu
 .IR color ]
 .RB [ \-w
 .IR windowid ]
+.RB [ \-bw
+.IR border_width ]
 .P
 .BR dmenu_run " ..."
+.P
+.BR dmenu_dex_run " ..."
+.P
+.BR dmenu_power_opt " ..."
 .SH DESCRIPTION
 .B dmenu
 is a dynamic menu for X, which reads a list of newline\-separated items from
@@ -43,6 +49,21 @@ matching the tokens in the input.
 is a script used by
 .IR dwm (1)
 which lists programs in the user's $PATH and runs the result in their $SHELL.
+.P
+.B dmenu_dex_run
+is a script which lists desktop applications which have their
+.BR .desktop
+files in
+.BR /usr/share/applications
+or
+.BR ~/.local/share/applications
+and uses
+.IR gtk-launch (1)
+to launch them when selected.
+.P
+.B dmenu_power_opt
+lists common power options to perform and passes the selected option to
+.IR loginctl (1).
 .SH OPTIONS
 .TP
 .B \-b
@@ -51,6 +72,9 @@ dmenu appears at the bottom of the screen.
 .B \-f
 dmenu grabs the keyboard before reading stdin if not reading from a tty. This
 is faster, but will lock up X until stdin reaches end\-of\-file.
+.TP
+.B \-F
+enable fuzzy matching.
 .TP
 .B \-i
 dmenu matches menu items case insensitively.
@@ -109,6 +133,9 @@ prints version information to stdout, then exits.
 .TP
 .BI \-w " windowid"
 embed into windowid.
+.TP
+.BI \-bw " width"
+sets the border width of the dmenu window.
 .SH USAGE
 dmenu is completely controlled by the keyboard.  Items are selected using the
 arrow keys, page up, page down, home, and end.
@@ -220,4 +247,6 @@ Page up
 Down
 .SH SEE ALSO
 .IR dwm (1),
-.IR stest (1)
+.IR stest (1),
+.IR gtk-launch (1),
+.IR loginctl (1)
