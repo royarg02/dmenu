@@ -38,6 +38,8 @@ dmenu \- dynamic menu
 .BR dmenu_dex_run " ..."
 .P
 .BR dmenu_power_opt " ..."
+.P
+.BR dmenu_emoji " ..."
 .SH DESCRIPTION
 .B dmenu
 is a dynamic menu for X, which reads a list of newline\-separated items from
@@ -64,6 +66,19 @@ to launch them when selected.
 .B dmenu_power_opt
 lists common power options to perform and passes the selected option to
 .IR loginctl (1).
+.P
+.B dmenu_emoji
+is a script which lists emojis from
+.BR XDG_DATA_HOME/emoji
+or
+.BR ~/.local/share/emoji
+to pick and copy to clipboard using
+.IR xclip (1).
+If the file doesn't exist, it creates a new one from
+.BR github.com/LukeSmithxyz/voidrice
+by using
+.IR curl (1)
+and checks for any new updates every four months.
 .SH OPTIONS
 .TP
 .B \-b
@@ -249,4 +264,6 @@ Down
 .IR dwm (1),
 .IR stest (1),
 .IR gtk-launch (1),
-.IR loginctl (1)
+.IR loginctl (1),
+.IR xclip (1),
+.IR curl (1)
