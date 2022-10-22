@@ -4,7 +4,7 @@
 # LukeSmithxyz/voidrice if unavailable) through dmenu(1).
 #
 # This script checks for any new updates in the remote every four months using
-# the GitHub API. 
+# the GitHub API.
 
 # Important variables
 TIMEOUT="5"

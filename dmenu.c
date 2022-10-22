@@ -1064,10 +1064,9 @@ setup(void)
 static void
 usage(void)
 {
-	fputs("usage: dmenu [-bfFiv] [-l lines] [-h height] [-p prompt] [-fn font] [-m monitor]\n"
-	      "             [-x xoffset] [-y yoffset] [-z width]\n"
-	      "             [-nb color] [-nf color] [-sb color] [-sf color] [-w windowid]\n", stderr);
-	exit(1);
+	die("usage: dmenu [-bfFiv] [-l lines] [-h height] [-p prompt] [-fn font] [-m monitor]\n"
+	    "             [-x xoffset] [-y yoffset] [-z width]\n"
+	    "             [-nb color] [-nf color] [-sb color] [-sf color] [-w windowid]");
 }
 
 int
