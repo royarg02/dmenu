@@ -60,4 +60,5 @@ ResourcePref resources[] = {
 	{ "lines",       INTEGER,&lines },
 	{ "lineheight",  INTEGER,&lineheight },
 	{ "borderwidth", INTEGER,&border_width },
+	{ "minwidth",    INTEGER,&min_width },
 };
