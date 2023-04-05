@@ -1107,11 +1107,11 @@ setup(void)
 static void
 usage(void)
 {
-	die("usage: dmenu [-bfFiv] [-l lines] [-h height] [-p prompt] [-fn font] [-m monitor]\n"
+	die("usage: dmenu [-bcfFiv] [-l lines] [-h height] [-p prompt] [-fn font] [-m monitor]\n"
 	    "             [-x xoffset] [-y yoffset] [-z width]\n"
 	    "             [-nb color] [-nf color] [-sb color] [-sf color]\n"
 	    "             [-nhb color] [-nhf color] [-shb color] [-shf color] [-w windowid]\n"
-	    "             [-it text]");
+	    "             [-bw border_width] [-it text]");
 }
 
 int
