@@ -17,10 +17,9 @@ index 5c835dd..71efe52 100644
 @@ -144,14 +145,21 @@ drawmenu(void)
  	}
  	/* draw input field */
--	w = (lines > 0 || !matches) ? mw - x : inputw;
+ 	w = (lines > 0 || !matches) ? mw - x : inputw;
 -	drw_setscheme(drw, scheme[SchemeNorm]);
 -	drw_text(drw, x, 0, w, bh, lrpad / 2, text, 0);
-+	w = (lines > 0 || !matches) ? mw - x - border_width * 2 : inputw;
 +	w -= lrpad / 2;
 +	x += lrpad / 2;
  

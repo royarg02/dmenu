@@ -235,7 +235,7 @@ drawmenu(void)
 		x = drw_text(drw, x, 0, promptw, bh, lrpad / 2, prompt, 0);
 	}
 	/* draw input field */
-	w = (lines > 0 || !matches) ? mw - x - border_width * 2 : inputw;
+	w = (lines > 0 || !matches) ? mw - x : inputw;
 	w -= lrpad / 2;
 	x += lrpad / 2;
 
