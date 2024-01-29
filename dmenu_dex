@@ -10,12 +10,10 @@ search_path=$(echo "${XDG_DATA_HOME:-"$HOME/.local/share"}:${XDG_DATA_DIRS:-"/us
 
 IFS=':'
 if stest -dqr -n "$cache" $search_path; then
-	for location in $search_path; do
-		find "$location" -name "*.desktop"
-	done | \
-		xargs -I % sh -c \
-			'grep -q '^NoDisplay=true' % || { grep -m1 '^Name=' % | cut -d '=' -f2 | tr -d "\n" && echo -e "\t%" ;}' | \
-				sort -u -t "$(printf "\t")" -k1,1 | tee "$cache"
+  for location in $search_path; do
+    find "$location" -name "*.desktop" ! -exec grep -q '^NoDisplay=true' {} \; \
+      -exec sh -c 'printf "%s\t%s\n" "$(grep -m1 '^Name=' "$0" | cut -d '=' -f2)" "$0"' {} \;
+  done | sort -u -t "$(printf "\t")" -k1,1 | tee "$cache"
 else
 	cat "$cache"
 fi
