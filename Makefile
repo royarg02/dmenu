@@ -28,22 +28,18 @@ clean:
 dist: clean
 	mkdir -p dmenu-$(VERSION)
 	cp LICENSE Makefile README arg.h config.def.h config.mk dmenu.1\
-		drw.h util.h dmenu_path dmenu_run dmenu_dex dmenu_dex_run dmenu_power_opt\
-		dmenu_emoji stest.1 $(SRC) dmenu-$(VERSION)
+		drw.h util.h dmenu_path dmenu_run stest.1 $(SRC)\
+		dmenu-$(VERSION)
 	tar -cf dmenu-$(VERSION).tar dmenu-$(VERSION)
 	gzip dmenu-$(VERSION).tar
 	rm -rf dmenu-$(VERSION)
 
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp -f dmenu dmenu_path dmenu_run dmenu_dex dmenu_dex_run dmenu_power_opt dmenu_emoji stest $(DESTDIR)$(PREFIX)/bin
+	cp -f dmenu dmenu_path dmenu_run stest $(DESTDIR)$(PREFIX)/bin
 	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu
 	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu_path
 	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu_run
-	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu_dex
-	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu_dex_run
-	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu_power_opt
-	chmod 755 $(DESTDIR)$(PREFIX)/bin/dmenu_emoji
 	chmod 755 $(DESTDIR)$(PREFIX)/bin/stest
 	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
 	sed "s/VERSION/$(VERSION)/g" < dmenu.1 > $(DESTDIR)$(MANPREFIX)/man1/dmenu.1
@@ -55,10 +51,6 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/dmenu\
 		$(DESTDIR)$(PREFIX)/bin/dmenu_path\
 		$(DESTDIR)$(PREFIX)/bin/dmenu_run\
-		$(DESTDIR)$(PREFIX)/bin/dmenu_dex\
-		$(DESTDIR)$(PREFIX)/bin/dmenu_dex_run\
-		$(DESTDIR)$(PREFIX)/bin/dmenu_power_opt\
-		$(DESTDIR)$(PREFIX)/bin/dmenu_emoji\
 		$(DESTDIR)$(PREFIX)/bin/stest\
 		$(DESTDIR)$(MANPREFIX)/man1/dmenu.1\
 		$(DESTDIR)$(MANPREFIX)/man1/stest.1

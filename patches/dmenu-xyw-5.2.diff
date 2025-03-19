@@ -1,18 +1,6 @@
-From 7dc7cb96cdda9ad66e33109223c4cc297a7721d1 Mon Sep 17 00:00:00 2001
-From: Alex Cole <ajzcole@airmail.cc>
-Date: Tue, 6 Oct 2020 10:42:07 +1300
-Subject: [PATCH] Updated xyw for 5.0 properly
-
----
- dmenu.1 | 24 ++++++++++++++++++++++++
- dmenu.c | 22 ++++++++++++++++------
- 2 files changed, 40 insertions(+), 6 deletions(-)
-
-diff --git a/dmenu.1 b/dmenu.1
-index 323f93c..a4ecbbb 100644
---- a/dmenu.1
-+++ b/dmenu.1
-@@ -8,6 +8,12 @@ dmenu \- dynamic menu
+--- a/dmenu.1	2022-10-04 10:36:58.000000000 -0700
++++ b/dmenu.1	2024-03-23 19:40:27.116453289 -0700
+@@ -8,6 +8,12 @@
  .IR lines ]
  .RB [ \-m
  .IR monitor ]
@@ -25,7 +13,7 @@ index 323f93c..a4ecbbb 100644
  .RB [ \-p
  .IR prompt ]
  .RB [ \-fn
-@@ -54,6 +60,24 @@ dmenu lists items vertically, with the given number of lines.
+@@ -54,6 +60,24 @@
  dmenu is displayed on the monitor number supplied. Monitor numbers are starting
  from 0.
  .TP
@@ -50,11 +38,9 @@ index 323f93c..a4ecbbb 100644
  .BI \-p " prompt"
  defines the prompt to be displayed to the left of the input field.
  .TP
-diff --git a/dmenu.c b/dmenu.c
-index 65f25ce..7be19ae 100644
---- a/dmenu.c
-+++ b/dmenu.c
-@@ -37,6 +37,9 @@ struct item {
+--- a/dmenu.c	2022-10-04 10:36:58.000000000 -0700
++++ b/dmenu.c	2024-03-23 19:39:53.173081139 -0700
+@@ -37,6 +37,9 @@
  static char text[BUFSIZ] = "";
  static char *embed;
  static int bh, mw, mh;
@@ -64,8 +50,8 @@ index 65f25ce..7be19ae 100644
  static int inputw = 0, promptw;
  static int lrpad; /* sum of left and right padding */
  static size_t cursor;
-@@ -637,9 +640,9 @@ setup(void)
- 				if (INTERSECT(x, y, 1, 1, info[i]))
+@@ -658,9 +661,9 @@
+ 				if (INTERSECT(x, y, 1, 1, info[i]) != 0)
  					break;
  
 -		x = info[i].x_org;
@@ -73,11 +59,11 @@ index 65f25ce..7be19ae 100644
 -		mw = info[i].width;
 +		x = info[i].x_org + dmx;
 +		y = info[i].y_org + (topbar ? dmy : info[i].height - mh - dmy);
-+		mw = (dmw>0 ? dmw : info[i].width);
++		mw = (dmw>0 ? dmw : info[i].width);;
  		XFree(info);
  	} else
  #endif
-@@ -647,9 +650,9 @@ setup(void)
+@@ -668,9 +671,9 @@
  		if (!XGetWindowAttributes(dpy, parentwin, &wa))
  			die("could not get embedding window attributes: 0x%lx",
  			    parentwin);
@@ -89,16 +75,16 @@ index 65f25ce..7be19ae 100644
 +		mw = (dmw>0 ? dmw : wa.width);
  	}
  	promptw = (prompt && *prompt) ? TEXTW(prompt) - lrpad / 4 : 0;
- 	inputw = MIN(inputw, mw/3);
-@@ -690,6 +693,7 @@ static void
+ 	inputw = mw / 3; /* input width: ~33% of monitor width */
+@@ -711,6 +714,7 @@
  usage(void)
  {
- 	fputs("usage: dmenu [-bfiv] [-l lines] [-p prompt] [-fn font] [-m monitor]\n"
+ 	die("usage: dmenu [-bfiv] [-l lines] [-p prompt] [-fn font] [-m monitor]\n"
 +	      "             [-x xoffset] [-y yoffset] [-z width]\n"
- 	      "             [-nb color] [-nf color] [-sb color] [-sf color] [-w windowid]\n", stderr);
- 	exit(1);
+ 	    "             [-nb color] [-nf color] [-sb color] [-sf color] [-w windowid]");
  }
-@@ -717,6 +721,12 @@ main(int argc, char *argv[])
+ 
+@@ -737,6 +741,12 @@
  		/* these options take one argument */
  		else if (!strcmp(argv[i], "-l"))   /* number of lines in vertical list */
  			lines = atoi(argv[++i]);
@@ -111,6 +97,3 @@ index 65f25ce..7be19ae 100644
  		else if (!strcmp(argv[i], "-m"))
  			mon = atoi(argv[++i]);
  		else if (!strcmp(argv[i], "-p"))   /* adds prompt to left of input field */
--- 
-2.28.0
-

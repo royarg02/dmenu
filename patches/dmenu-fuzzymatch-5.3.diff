@@ -1,31 +1,33 @@
-From 94353eb52055927d9079f3d9e33da1c954abf386 Mon Sep 17 00:00:00 2001
-From: aleks <aleks.stier@icloud.com>
-Date: Wed, 26 Jun 2019 13:25:10 +0200
-Subject: [PATCH] Add support for fuzzy-matching
+From d166c2c90f777f5a80f628d493cdcf7bf03034b8 Mon Sep 17 00:00:00 2001
+From: Justinas Grigas <dev@jstnas.com>
+Date: Mon, 17 Jun 2024 02:52:15 +0100
+Subject: [PATCH] fuzzymatch: Add support for fuzzy-matching
 
+This version of the patch updates the manpage.
 ---
  config.def.h |  1 +
  config.mk    |  2 +-
- dmenu.c      | 89 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 91 insertions(+), 1 deletion(-)
+ dmenu.1      |  5 ++-
+ dmenu.c      | 90 +++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 4 files changed, 95 insertions(+), 3 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
-index 1edb647..51612b9 100644
+index 1edb647..a4e6174 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -2,6 +2,7 @@
  /* Default settings; can be overriden by command line. */
  
  static int topbar = 1;                      /* -b  option; if 0, dmenu appears at bottom     */
-+static int fuzzy = 1;                      /* -F  option; if 0, dmenu doesn't use fuzzy matching     */
++static int fuzzy  = 1;                      /* -F  option; if 0, dmenu doesn't use fuzzy matching */
  /* -fn option overrides fonts[0]; default X11 font or font set */
  static const char *fonts[] = {
  	"monospace:size=10"
 diff --git a/config.mk b/config.mk
-index 0929b4a..d14309a 100644
+index 137f7c8..6a19175 100644
 --- a/config.mk
 +++ b/config.mk
-@@ -20,7 +20,7 @@ FREETYPEINC = /usr/include/freetype2
+@@ -21,7 +21,7 @@ FREETYPEINC = /usr/include/freetype2
  
  # includes and libs
  INCS = -I$(X11INC) -I$(FREETYPEINC)
@@ -34,8 +36,31 @@ index 0929b4a..d14309a 100644
  
  # flags
  CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L -DVERSION=\"$(VERSION)\" $(XINERAMAFLAGS)
+diff --git a/dmenu.1 b/dmenu.1
+index 323f93c..e2c5ef4 100644
+--- a/dmenu.1
++++ b/dmenu.1
+@@ -3,7 +3,7 @@
+ dmenu \- dynamic menu
+ .SH SYNOPSIS
+ .B dmenu
+-.RB [ \-bfiv ]
++.RB [ \-bFfiv ]
+ .RB [ \-l
+ .IR lines ]
+ .RB [ \-m
+@@ -40,6 +40,9 @@ which lists programs in the user's $PATH and runs the result in their $SHELL.
+ .B \-b
+ dmenu appears at the bottom of the screen.
+ .TP
++.B \-F
++disables fuzzy matching.
++.TP
+ .B \-f
+ dmenu grabs the keyboard before reading stdin if not reading from a tty. This
+ is faster, but will lock up X until stdin reaches end\-of\-file.
 diff --git a/dmenu.c b/dmenu.c
-index 6b8f51b..96ddc98 100644
+index 40f93e0..03e1f45 100644
 --- a/dmenu.c
 +++ b/dmenu.c
 @@ -1,6 +1,7 @@
@@ -46,7 +71,7 @@ index 6b8f51b..96ddc98 100644
  #include <stdio.h>
  #include <stdlib.h>
  #include <string.h>
-@@ -32,6 +33,7 @@ struct item {
+@@ -31,6 +32,7 @@ struct item {
  	char *text;
  	struct item *left, *right;
  	int out;
@@ -54,7 +79,7 @@ index 6b8f51b..96ddc98 100644
  };
  
  static char text[BUFSIZ] = "";
-@@ -210,9 +212,94 @@ grabkeyboard(void)
+@@ -226,9 +228,93 @@ grabkeyboard(void)
  	die("cannot grab keyboard");
  }
  
@@ -85,18 +110,18 @@ index 6b8f51b..96ddc98 100644
 +	matches = matchend = NULL;
 +
 +	/* walk through all items */
-+	for (it = items; it && it->text; it++) {
++	for (it = items; it && it->text; ++it) {
 +		if (text_len) {
 +			itext_len = strlen(it->text);
 +			pidx = 0; /* pointer */
 +			sidx = eidx = -1; /* start of match, end of match */
 +			/* walk through item text */
-+			for (i = 0; i < itext_len && (c = it->text[i]); i++) {
++			for (i = 0; i < itext_len && (c = it->text[i]); ++i) {
 +				/* fuzzy match pattern */
 +				if (!fstrncmp(&text[pidx], &c, 1)) {
 +					if(sidx == -1)
 +						sidx = i;
-+					pidx++;
++					++pidx;
 +					if (pidx == text_len) {
 +						eidx = i;
 +						break;
@@ -111,7 +136,7 @@ index 6b8f51b..96ddc98 100644
 +				it->distance = log(sidx + 2) + (double)(eidx - sidx - text_len);
 +				/* fprintf(stderr, "distance %s %f\n", it->text, it->distance); */
 +				appenditem(it, &matches, &matchend);
-+				number_of_matches++;
++				++number_of_matches;
 +			}
 +		} else {
 +			appenditem(it, &matches, &matchend);
@@ -120,19 +145,18 @@ index 6b8f51b..96ddc98 100644
 +
 +	if (number_of_matches) {
 +		/* initialize array with matches */
-+		if (!(fuzzymatches = realloc(fuzzymatches, number_of_matches * sizeof(struct item*))))
-+			die("cannot realloc %u bytes:", number_of_matches * sizeof(struct item*));
-+		for (i = 0, it = matches; it && i < number_of_matches; i++, it = it->right) {
++		if (!(fuzzymatches = realloc(fuzzymatches,
++		                             number_of_matches * sizeof(struct item *))))
++			die("cannot realloc %u bytes:", number_of_matches * sizeof(struct item *));
++		for (i = 0, it = matches; it && i < number_of_matches; ++i, it = it->right)
 +			fuzzymatches[i] = it;
-+		}
 +		/* sort matches according to distance */
 +		qsort(fuzzymatches, number_of_matches, sizeof(struct item*), compare_distance);
 +		/* rebuild list of matches */
 +		matches = matchend = NULL;
-+		for (i = 0, it = fuzzymatches[i];  i < number_of_matches && it && \
-+				it->text; i++, it = fuzzymatches[i]) {
++		for (i = 0, it = fuzzymatches[i]; i < number_of_matches && it &&
++		        it->text; ++i, it = fuzzymatches[i])
 +			appenditem(it, &matches, &matchend);
-+		}
 +		free(fuzzymatches);
 +	}
 +	curr = sel = matches;
@@ -149,15 +173,24 @@ index 6b8f51b..96ddc98 100644
  	static char **tokv = NULL;
  	static int tokn = 0;
  
-@@ -702,6 +789,8 @@ main(int argc, char *argv[])
+@@ -715,7 +801,7 @@ setup(void)
+ static void
+ usage(void)
+ {
+-	die("usage: dmenu [-bfiv] [-l lines] [-p prompt] [-fn font] [-m monitor]\n"
++	die("usage: dmenu [-bFfiv] [-l lines] [-p prompt] [-fn font] [-m monitor]\n"
+ 	    "             [-nb color] [-nf color] [-sb color] [-sf color] [-w windowid]");
+ }
+ 
+@@ -732,6 +818,8 @@ main(int argc, char *argv[])
+ 			exit(0);
+ 		} else if (!strcmp(argv[i], "-b")) /* appears at the bottom of the screen */
  			topbar = 0;
++		else if (!strcmp(argv[i], "-F"))   /* disables fuzzy matching */
++			fuzzy = 0;
  		else if (!strcmp(argv[i], "-f"))   /* grabs keyboard before reading stdin */
  			fast = 1;
-+		else if (!strcmp(argv[i], "-F"))   /* grabs keyboard before reading stdin */
-+			fuzzy = 0;
  		else if (!strcmp(argv[i], "-i")) { /* case-insensitive item matching */
- 			fstrncmp = strncasecmp;
- 			fstrstr = cistrstr;
 -- 
-2.22.0
+2.45.2
 

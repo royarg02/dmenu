@@ -1,17 +1,8 @@
-From 51331aed8a535323702b73681c5ce2af6f8f5868 Mon Sep 17 00:00:00 2001
-From: Karol Kosek <krkk@krkk.ct8.pl>
-Date: Sat, 23 Jan 2021 20:16:19 +0100
-Subject: [PATCH] fix mouse hover on vertical lists with prompt text
-
----
- dmenu.c | 159 +++++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 158 insertions(+), 1 deletion(-)
-
 diff --git a/dmenu.c b/dmenu.c
-index 65f25ce..aff2768 100644
+index 40f93e0..d194caf 100644
 --- a/dmenu.c
 +++ b/dmenu.c
-@@ -500,6 +500,156 @@ draw:
+@@ -527,6 +527,119 @@ draw:
  	drawmenu();
  }
  
@@ -69,11 +60,8 @@ index 65f25ce..aff2768 100644
 +	}
 +	if (ev->button != Button1)
 +		return;
-+	/* disabled below, needs to be fixed */
-+	/*
 +	if (ev->state & ~ControlMask)
 +		return;
-+	*/
 +	if (lines > 0) {
 +		/* vertical list: (ctrl)left-click on item */
 +		w = mw - x;
@@ -131,66 +119,26 @@ index 65f25ce..aff2768 100644
 +	}
 +}
 +
-+static void
-+mousemove(XEvent *e)
-+{
-+	struct item *item;
-+	XPointerMovedEvent *ev = &e->xmotion;
-+	int x = 0, y = 0, h = bh, w;
-+
-+	if (lines > 0) {
-+		w = mw - x;
-+		for (item = curr; item != next; item = item->right) {
-+			y += h;
-+			if (ev->y >= y && ev->y <= (y + h)) {
-+				sel = item;
-+				calcoffsets();
-+				drawmenu();
-+				return;
-+			}
-+		}
-+	} else if (matches) {
-+		x += inputw + promptw;
-+		w = TEXTW("<");
-+		for (item = curr; item != next; item = item->right) {
-+			x += w;
-+			w = MIN(TEXTW(item->text), mw - x - TEXTW(">"));
-+			if (ev->x >= x && ev->x <= x + w) {
-+				sel = item;
-+				calcoffsets();
-+				drawmenu();
-+				return;
-+			}
-+		}
-+	}
-+}
-+
  static void
  paste(void)
  {
-@@ -561,6 +711,12 @@ run(void)
+@@ -586,6 +699,9 @@ run(void)
  				break;
  			cleanup();
  			exit(1);
 +		case ButtonPress:
 +			buttonpress(&ev);
 +			break;
-+		case MotionNotify:
-+			mousemove(&ev);
-+			break;
  		case Expose:
  			if (ev.xexpose.count == 0)
  				drw_map(drw, win, 0, 0, mw, mh);
-@@ -658,7 +814,8 @@ setup(void)
+@@ -683,7 +799,8 @@ setup(void)
  	/* create menu window */
  	swa.override_redirect = True;
  	swa.background_pixel = scheme[SchemeNorm][ColBg].pixel;
 -	swa.event_mask = ExposureMask | KeyPressMask | VisibilityChangeMask;
 +	swa.event_mask = ExposureMask | KeyPressMask | VisibilityChangeMask |
-+	                 ButtonPressMask | PointerMotionMask;
- 	win = XCreateWindow(dpy, parentwin, x, y, mw, mh, 0,
++	                 ButtonPressMask;
+ 	win = XCreateWindow(dpy, root, x, y, mw, mh, 0,
  	                    CopyFromParent, CopyFromParent, CopyFromParent,
  	                    CWOverrideRedirect | CWBackPixel | CWEventMask, &swa);
--- 
-2.30.0
-

@@ -23,15 +23,13 @@
 
 /* macros */
 #define INTERSECT(x,y,w,h,r)  (MAX(0, MIN((x)+(w),(r).x_org+(r).width)  - MAX((x),(r).x_org)) \
-                             && MAX(0, MIN((y)+(h),(r).y_org+(r).height) - MAX((y),(r).y_org)))
+                             * MAX(0, MIN((y)+(h),(r).y_org+(r).height) - MAX((y),(r).y_org)))
 #define TEXTW(X)              (drw_fontset_getwidth(drw, (X)) + lrpad)
 #define NUMBERSMAXDIGITS      100
 #define NUMBERSBUFSIZE        (NUMBERSMAXDIGITS * 2) + 1
 
 /* enums */
-enum { SchemeNorm, SchemeSel, SchemeNormHighlight, SchemeSelHighlight,
-       SchemeOut, SchemeLast }; /* color schemes */
-
+enum { SchemeNorm, SchemeSel, SchemeOut, SchemeLast }; /* color schemes */
 
 struct item {
 	char *text;
@@ -121,15 +119,6 @@ calcoffsets(void)
 			break;
 }
 
-static int
-max_textw(void)
-{
-	int len = 0;
-	for (struct item *item = items; item && item->text; item++)
-		len = MAX(TEXTW(item->text), len);
-	return len;
-}
-
 static void
 cleanup(void)
 {
@@ -164,50 +153,9 @@ cistrstr(const char *h, const char *n)
 	return NULL;
 }
 
-static void
-drawhighlights(struct item *item, int x, int y, int maxw)
-{
-	int i, indent;
-	char *highlight;
-	char c;
-
-	if (!(strlen(item->text) && strlen(text)))
-		return;
-
-	drw_setscheme(drw, scheme[item == sel
-	                   ? SchemeSelHighlight
-	                   : SchemeNormHighlight]);
-	for (i = 0, highlight = item->text; *highlight && text[i];) {
-		if (!fstrncmp(&text[i], highlight, 1)) {
-			/* get indentation */
-			c = *highlight;
-			*highlight = '\0';
-			indent = TEXTW(item->text) - lrpad;
-			*highlight = c;
-
-			c = highlight[1];
-			highlight[1] = '\0';
-
-			/* highlight character */
-			drw_text(
-				drw,
-				x + indent + (lrpad / 2),
-				y,
-				MIN(maxw - indent - lrpad, TEXTW(highlight) - lrpad),
-				bh, 0, highlight, 0
-			);
-			highlight[1] = c;
-			i++;
-		}
-		highlight++;
-	}
-}
-
-
 static int
 drawitem(struct item *item, int x, int y, int w)
 {
-	int r;
 	if (item == sel)
 		drw_setscheme(drw, scheme[SchemeSel]);
 	else if (item->out)
@@ -215,9 +163,7 @@ drawitem(struct item *item, int x, int y, int w)
 	else
 		drw_setscheme(drw, scheme[SchemeNorm]);
 
-	r = drw_text(drw, x, y, w, bh, lrpad / 2, item->text, 0);
-	drawhighlights(item, x, y, w);
-	return r;
+	return drw_text(drw, x, y, w, bh, lrpad / 2, item->text, 0);
 }
 
 static void
@@ -238,42 +184,33 @@ recalculatenumbers()
 static void
 drawmenu(void)
 {
-	static int curpos, oldcurlen;
+	unsigned int curpos;
 	struct item *item;
 	int x = 0, y = 0, fh = drw->fonts->h, w;
-	int curlen, rcurlen;
 
 	drw_setscheme(drw, scheme[SchemeNorm]);
 	drw_rect(drw, 0, 0, mw, mh, 1, 1);
 
 	if (prompt && *prompt) {
-		if (colorprompt)
-			drw_setscheme(drw, scheme[SchemeSel]);
+		drw_setscheme(drw, scheme[SchemeSel]);
 		x = drw_text(drw, x, 0, promptw, bh, lrpad / 2, prompt, 0);
 	}
 	/* draw input field */
 	w = (lines > 0 || !matches) ? mw - x - TEXTW(numbers) : inputw;
-	w -= lrpad / 2;
-	x += lrpad / 2;
-
-	rcurlen = drw_fontset_getwidth(drw, text + cursor);
-	curlen = drw_fontset_getwidth(drw, text) - rcurlen;
-	curpos += curlen - oldcurlen;
-	curpos = MIN(w, MAX(0, curpos));
-	curpos = MAX(curpos, w - rcurlen);
-	curpos = MIN(curpos, curlen);
-	oldcurlen = curlen;
-
 	drw_setscheme(drw, scheme[SchemeNorm]);
-	drw_text_align(drw, x, 0, curpos, bh, text, cursor, AlignR);
-	drw_text_align(drw, x + curpos, 0, w - curpos, bh, text + cursor, strlen(text) - cursor, AlignL);
-	drw_rect(drw, x + curpos - 1, 2 + (bh - fh) / 2, 2, fh - 4, 1, 0);
+	drw_text(drw, x, 0, w, bh, lrpad / 2, text, 0);
+
+	curpos = TEXTW(text) - TEXTW(&text[cursor]);
+	if ((curpos += lrpad / 2 - 1) < w) {
+		drw_setscheme(drw, scheme[SchemeNorm]);
+		drw_rect(drw, x + curpos, 2 + (bh - fh) / 2, 2, fh - 4, 1, 0);
+	}
 
 	recalculatenumbers();
 	if (lines > 0) {
 		/* draw vertical list */
 		for (item = curr; item != next; item = item->right)
-			drawitem(item, 0, y += bh, mw);
+			drawitem(item, x - promptw, y += bh, mw);
 	} else if (matches) {
 		/* draw horizontal list */
 		x += inputw;
@@ -358,18 +295,18 @@ fuzzymatch(void)
 	matches = matchend = NULL;
 
 	/* walk through all items */
-	for (it = items; it && it->text; it++) {
+	for (it = items; it && it->text; ++it) {
 		if (text_len) {
 			itext_len = strlen(it->text);
 			pidx = 0; /* pointer */
 			sidx = eidx = -1; /* start of match, end of match */
 			/* walk through item text */
-			for (i = 0; i < itext_len && (c = it->text[i]); i++) {
+			for (i = 0; i < itext_len && (c = it->text[i]); ++i) {
 				/* fuzzy match pattern */
 				if (!fstrncmp(&text[pidx], &c, 1)) {
 					if(sidx == -1)
 						sidx = i;
-					pidx++;
+					++pidx;
 					if (pidx == text_len) {
 						eidx = i;
 						break;
@@ -384,7 +321,7 @@ fuzzymatch(void)
 				it->distance = log(sidx + 2) + (double)(eidx - sidx - text_len);
 				/* fprintf(stderr, "distance %s %f\n", it->text, it->distance); */
 				appenditem(it, &matches, &matchend);
-				number_of_matches++;
+				++number_of_matches;
 			}
 		} else {
 			appenditem(it, &matches, &matchend);
@@ -393,19 +330,18 @@ fuzzymatch(void)
 
 	if (number_of_matches) {
 		/* initialize array with matches */
-		if (!(fuzzymatches = realloc(fuzzymatches, number_of_matches * sizeof(struct item*))))
-			die("cannot realloc %u bytes:", number_of_matches * sizeof(struct item*));
-		for (i = 0, it = matches; it && i < number_of_matches; i++, it = it->right) {
+		if (!(fuzzymatches = realloc(fuzzymatches,
+		                             number_of_matches * sizeof(struct item *))))
+			die("cannot realloc %u bytes:", number_of_matches * sizeof(struct item *));
+		for (i = 0, it = matches; it && i < number_of_matches; ++i, it = it->right)
 			fuzzymatches[i] = it;
-		}
 		/* sort matches according to distance */
 		qsort(fuzzymatches, number_of_matches, sizeof(struct item*), compare_distance);
 		/* rebuild list of matches */
 		matches = matchend = NULL;
-		for (i = 0, it = fuzzymatches[i];  i < number_of_matches && it && \
-				it->text; i++, it = fuzzymatches[i]) {
+		for (i = 0, it = fuzzymatches[i]; i < number_of_matches && it &&
+		        it->text; ++i, it = fuzzymatches[i])
 			appenditem(it, &matches, &matchend);
-		}
 		free(fuzzymatches);
 	}
 	curr = sel = matches;
@@ -603,7 +539,7 @@ keypress(XKeyEvent *ev)
 
 	switch(ksym) {
 	default:
-	insert:
+insert:
 		if (!iscntrl((unsigned char)*buf))
 			insert(buf, len);
 		break;
@@ -771,11 +707,8 @@ buttonpress(XEvent *e)
 	}
 	if (ev->button != Button1)
 		return;
-	/* disabled below, needs to be fixed */
-	/*
 	if (ev->state & ~ControlMask)
 		return;
-	*/
 	if (lines > 0) {
 		/* vertical list: (ctrl)left-click on item */
 		w = mw - x;
@@ -834,36 +767,25 @@ buttonpress(XEvent *e)
 }
 
 static void
-mousemove(XEvent *e)
+motionevent(XButtonEvent *ev)
 {
-	struct item *item;
-	XPointerMovedEvent *ev = &e->xmotion;
-	int x = 0, y = 0, h = bh, w;
+	struct item *it;
+	int xy, ev_xy;
 
-	if (lines > 0) {
-		w = mw - x;
-		for (item = curr; item != next; item = item->right) {
-			y += h;
-			if (ev->y >= y && ev->y <= (y + h)) {
-				sel = item;
-				calcoffsets();
-				drawmenu();
-				return;
-			}
+	if (ev->window != win || matches == 0)
+		return;
+
+	xy = lines > 0 ? bh : inputw + promptw + TEXTW("<");
+	ev_xy = lines > 0 ? ev->y : ev->x;
+	for (it = curr; it && it != next; it = it->right) {
+		int wh = lines > 0 ? bh : textw_clamp(it->text, mw - xy - TEXTW(">"));
+		if (ev_xy >= xy && ev_xy < (xy + wh)) {
+			sel = it;
+			calcoffsets();
+			drawmenu();
+			break;
 		}
-	} else if (matches) {
-		x += inputw + promptw;
-		w = TEXTW("<");
-		for (item = curr; item != next; item = item->right) {
-			x += w;
-			w = MIN(TEXTW(item->text), mw - x - TEXTW(">"));
-			if (ev->x >= x && ev->x <= x + w) {
-				sel = item;
-				calcoffsets();
-				drawmenu();
-				return;
-			}
-		}
+		xy += wh;
 	}
 }
 
@@ -978,7 +900,7 @@ run(void)
 			buttonpress(&ev);
 			break;
 		case MotionNotify:
-			mousemove(&ev);
+			motionevent(&ev.xbutton);
 			break;
 		case Expose:
 			if (ev.xexpose.count == 0)
@@ -1031,7 +953,6 @@ setup(void)
 	bh = MAX(bh,lineheight);	/* make a menu line AT LEAST 'lineheight' tall */
 	lines = MAX(lines, 0);
 	mh = (lines + 1) * bh;
-	promptw = (prompt && *prompt) ? TEXTW(prompt) - lrpad / 4 : 0;
 #ifdef XINERAMA
 	i = 0;
 	if (parentwin == root && (info = XineramaQueryScreens(dpy, &n))) {
@@ -1058,16 +979,9 @@ setup(void)
 				if (INTERSECT(x, y, 1, 1, info[i]) != 0)
 					break;
 
-		if (centered) {
-			mw = MIN(MAX(max_textw() + promptw, min_width), info[i].width);
-			x = info[i].x_org + ((info[i].width  - mw) / 2);
-			y = info[i].y_org + ((info[i].height - mh) / 2);
-		} else {
-			x = info[i].x_org + dmx;
-			y = info[i].y_org + (topbar ? dmy : info[i].height - mh - dmy);
-			mw = (dmw>0 ? dmw : info[i].width);
-		}
-
+		x = info[i].x_org + dmx;
+		y = info[i].y_org + (topbar ? dmy : info[i].height - mh - dmy);
+		mw = (dmw>0 ? dmw : info[i].width);;
 		XFree(info);
 	} else
 #endif
@@ -1075,16 +989,9 @@ setup(void)
 		if (!XGetWindowAttributes(dpy, parentwin, &wa))
 			die("could not get embedding window attributes: 0x%lx",
 			    parentwin);
-
-		if (centered) {
-			mw = MIN(MAX(max_textw() + promptw, min_width), wa.width);
-			x = (wa.width  - mw) / 2;
-			y = (wa.height - mh) / 2;
-		} else {
-			x = dmx;
-			y = topbar ? dmy : wa.height - mh - dmy;
-			mw = (dmw>0 ? dmw : wa.width);
-		}
+		x = dmx;
+		y = topbar ? dmy : wa.height - mh - dmy;
+		mw = (dmw>0 ? dmw : wa.width);
 	}
 	promptw = (prompt && *prompt) ? TEXTW(prompt) - lrpad / 4 : 0;
 	inputw = mw / 3; /* input width: ~33% of monitor width */
@@ -1127,11 +1034,10 @@ setup(void)
 static void
 usage(void)
 {
-	die("usage: dmenu [-bcfFiv] [-l lines] [-h height] [-p prompt] [-fn font] [-m monitor]\n"
+	die("usage: dmenu [-bFfiv] [-l lines] [-h height] [-p prompt] [-fn font] [-m monitor]\n"
+	    "             [-nb color] [-nf color] [-sb color] [-sf color] [-w windowid]\n"
 	    "             [-x xoffset] [-y yoffset] [-z width]\n"
-	    "             [-nb color] [-nf color] [-sb color] [-sf color]\n"
-	    "             [-nhb color] [-nhf color] [-shb color] [-shf color] [-w windowid]\n"
-	    "             [-bw border_width] [-it text]");
+	    "             [-bw borderwidth] [-it text]");
 }
 
 int
@@ -1150,12 +1056,10 @@ main(int argc, char *argv[])
 			exit(0);
 		} else if (!strcmp(argv[i], "-b")) /* appears at the bottom of the screen */
 			topbar = 0;
+		else if (!strcmp(argv[i], "-F"))   /* disables fuzzy matching */
+			fuzzy = 0;
 		else if (!strcmp(argv[i], "-f"))   /* grabs keyboard before reading stdin */
 			fast = 1;
-		else if (!strcmp(argv[i], "-F"))   /* disable fuzzy matching */
-			fuzzy = 0;
-		else if (!strcmp(argv[i], "-c"))   /* centers dmenu on screen */
-			centered = 1;
 		else if (!strcmp(argv[i], "-i")) { /* case-insensitive item matching */
 			fstrncmp = strncasecmp;
 			fstrstr = cistrstr;
@@ -1164,16 +1068,16 @@ main(int argc, char *argv[])
 		/* these options take one argument */
 		else if (!strcmp(argv[i], "-l"))   /* number of lines in vertical list */
 			lines = atoi(argv[++i]);
+		else if (!strcmp(argv[i], "-h")) { /* minimum height of one menu line */
+			lineheight = atoi(argv[++i]);
+			lineheight = MAX(lineheight, min_lineheight);
+		}
 		else if (!strcmp(argv[i], "-x"))   /* window x offset */
 			dmx = atoi(argv[++i]);
 		else if (!strcmp(argv[i], "-y"))   /* window y offset (from bottom up if -b) */
 			dmy = atoi(argv[++i]);
 		else if (!strcmp(argv[i], "-z"))   /* make dmenu this wide */
 			dmw = atoi(argv[++i]);
-		else if (!strcmp(argv[i], "-h")) { /* minimum height of one menu line */
-			lineheight = atoi(argv[++i]);
-			lineheight = MAX(lineheight, min_lineheight);
-		}
 		else if (!strcmp(argv[i], "-m"))
 			mon = atoi(argv[++i]);
 		else if (!strcmp(argv[i], "-p"))   /* adds prompt to left of input field */
@@ -1188,14 +1092,6 @@ main(int argc, char *argv[])
 			colors[SchemeSel][ColBg] = argv[++i];
 		else if (!strcmp(argv[i], "-sf"))  /* selected foreground color */
 			colors[SchemeSel][ColFg] = argv[++i];
-		else if (!strcmp(argv[i], "-nhb")) /* normal hi background color */
-			colors[SchemeNormHighlight][ColBg] = argv[++i];
-		else if (!strcmp(argv[i], "-nhf")) /* normal hi foreground color */
-			colors[SchemeNormHighlight][ColFg] = argv[++i];
-		else if (!strcmp(argv[i], "-shb")) /* selected hi background color */
-			colors[SchemeSelHighlight][ColBg] = argv[++i];
-		else if (!strcmp(argv[i], "-shf")) /* selected hi foreground color */
-			colors[SchemeSelHighlight][ColFg] = argv[++i];
 		else if (!strcmp(argv[i], "-w"))   /* embedding window id */
 			embed = argv[++i];
 		else if (!strcmp(argv[i], "-bw"))

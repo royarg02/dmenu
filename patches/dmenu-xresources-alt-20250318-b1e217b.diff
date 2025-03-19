@@ -1,6 +1,7 @@
-diff -rupN orig/config.def.h patched/config.def.h
---- orig/config.def.h	2021-04-16 06:30:47.713924755 +0300
-+++ patched/config.def.h	2021-04-16 06:34:14.956933252 +0300
+diff --git a/config.def.h b/config.def.h
+index 1edb647..cd350f6 100644
+--- a/config.def.h
++++ b/config.def.h
 @@ -2,16 +2,25 @@
  /* Default settings; can be overriden by command line. */
  
@@ -33,7 +34,7 @@ diff -rupN orig/config.def.h patched/config.def.h
  };
  /* -l option; if nonzero, dmenu uses vertical list with given number of lines */
  static unsigned int lines      = 0;
-@@ -21,3 +30,15 @@ static unsigned int lines      = 0;
+@@ -21,3 +30,17 @@ static unsigned int lines      = 0;
   * for example: " /?\"&[]"
   */
  static const char worddelimiters[] = " ";
@@ -48,10 +49,13 @@ diff -rupN orig/config.def.h patched/config.def.h
 +	{ "selfgcolor",  STRING, &selfgcolor },
 +	{ "selbgcolor",  STRING, &selbgcolor },
 +	{ "prompt",      STRING, &prompt },
++	{ "topbar",      INTEGER,&topbar },
++	{ "lines",       INTEGER,&lines },
 +};
-diff -rupN orig/dmenu.c patched/dmenu.c
---- orig/dmenu.c	2021-04-16 06:30:47.715924755 +0300
-+++ patched/dmenu.c	2021-04-16 06:30:59.668925245 +0300
+diff --git a/dmenu.c b/dmenu.c
+index fd49549..f2b6b91 100644
+--- a/dmenu.c
++++ b/dmenu.c
 @@ -11,6 +11,7 @@
  #include <X11/Xlib.h>
  #include <X11/Xatom.h>
@@ -60,7 +64,7 @@ diff -rupN orig/dmenu.c patched/dmenu.c
  #ifdef XINERAMA
  #include <X11/extensions/Xinerama.h>
  #endif
-@@ -53,6 +54,21 @@ static XIC xic;
+@@ -52,6 +53,21 @@ static XIC xic;
  static Drw *drw;
  static Clr *scheme[SchemeLast];
  
@@ -82,16 +86,7 @@ diff -rupN orig/dmenu.c patched/dmenu.c
  #include "config.h"
  
  static int (*fstrncmp)(const char *, const char *, size_t) = strncmp;
-@@ -395,7 +411,7 @@ keypress(XKeyEvent *ev)
- 
- 	switch(ksym) {
- 	default:
--insert:
-+	insert:
- 		if (!iscntrl(*buf))
- 			insert(buf, len);
- 		break;
-@@ -547,6 +563,54 @@ readstdin(void)
+@@ -572,6 +588,54 @@ readstdin(void)
  	lines = MIN(lines, i);
  }
  
@@ -146,20 +141,21 @@ diff -rupN orig/dmenu.c patched/dmenu.c
  static void
  run(void)
  {
-@@ -700,6 +764,9 @@ main(int argc, char *argv[])
+@@ -724,6 +788,9 @@ main(int argc, char *argv[])
  	XWindowAttributes wa;
  	int i, fast = 0;
  
 +	XrmInitialize();
 +	load_xresources();
-+	
++
  	for (i = 1; i < argc; i++)
  		/* these options take no arguments */
  		if (!strcmp(argv[i], "-v")) {      /* prints version information */
-diff -rupN orig/drw.c patched/drw.c
---- orig/drw.c	2021-04-16 06:30:47.718924755 +0300
-+++ patched/drw.c	2021-04-16 06:30:59.670925245 +0300
-@@ -208,7 +208,7 @@ drw_clr_create(Drw *drw, Clr *dest, cons
+diff --git a/drw.c b/drw.c
+index c41e6af..6be5dee 100644
+--- a/drw.c
++++ b/drw.c
+@@ -181,7 +181,7 @@ drw_clr_create(Drw *drw, Clr *dest, const char *clrname)
  /* Wrapper to create color schemes. The caller has to call free(3) on the
   * returned color scheme when done using it. */
  Clr *
@@ -168,10 +164,11 @@ diff -rupN orig/drw.c patched/drw.c
  {
  	size_t i;
  	Clr *ret;
-diff -rupN orig/drw.h patched/drw.h
---- orig/drw.h	2021-04-16 06:30:47.718924755 +0300
-+++ patched/drw.h	2021-04-16 06:30:59.671925245 +0300
-@@ -39,7 +39,7 @@ void drw_font_getexts(Fnt *font, const c
+diff --git a/drw.h b/drw.h
+index fd7631b..0d91aad 100644
+--- a/drw.h
++++ b/drw.h
+@@ -40,7 +40,7 @@ void drw_font_getexts(Fnt *font, const char *text, unsigned int len, unsigned in
  
  /* Colorscheme abstraction */
  void drw_clr_create(Drw *drw, Clr *dest, const char *clrname);
