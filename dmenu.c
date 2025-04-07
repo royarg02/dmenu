@@ -756,7 +756,7 @@ buttonpress(XEvent *e)
 		}
 		/* left-click on right arrow */
 		w = TEXTW(">");
-		x = mw - w;
+		x = mw - w - TEXTW(numbers);
 		if (next && ev->x >= x && ev->x <= x + w) {
 			sel = curr = next;
 			calcoffsets();
